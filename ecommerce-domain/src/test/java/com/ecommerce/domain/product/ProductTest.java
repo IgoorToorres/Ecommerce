@@ -4,6 +4,7 @@ import com.ecommerce.domain.exception.DomainException;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,15 +30,47 @@ class ProductTest {
         assertThat(product.getUpdatedAt()).isNotNull();
     }
 
-@Test
-void shouldNotCreateProductWithBlankName(){
+    @Test
+    void shouldNotCreateProductWithNullName() {
+        assertThatThrownBy(() -> new Product(
+                null,
+                "Produto sem nome",
+                BigDecimal.valueOf(100),
+                5
+        )).isInstanceOf(DomainException.class);
+    }
+
+    @Test
+    void shouldNotCreateProductWithBlankName() {
         assertThatThrownBy(() -> new Product(
                 " ",
                 "Produto sem nome",
                 BigDecimal.valueOf(100),
                 5
         )).isInstanceOf(DomainException.class);
-}
+    }
+
+    @Test
+    void shouldNotCreateProductWithNameLongerThan150Characters() {
+        String name = "a".repeat(151);
+
+        assertThatThrownBy(() -> new Product(
+                name,
+                "Produto com nome muito grande",
+                BigDecimal.valueOf(100),
+                5
+        )).isInstanceOf(DomainException.class);
+    }
+
+    @Test
+    void shouldNotCreateProductWithNullPrice() {
+        assertThatThrownBy(() -> new Product(
+                "Mouse",
+                "Mouse sem fio",
+                null,
+                5
+        )).isInstanceOf(DomainException.class);
+    }
 
     @Test
     void shouldNotCreateProductWithZeroPrice() {
@@ -45,6 +78,16 @@ void shouldNotCreateProductWithBlankName(){
                 "Mouse",
                 "Mouse sem fio",
                 BigDecimal.ZERO,
+                5
+        )).isInstanceOf(DomainException.class);
+    }
+
+    @Test
+    void shouldNotCreateProductWithNegativePrice() {
+        assertThatThrownBy(() -> new Product(
+                "Mouse",
+                "Mouse sem fio",
+                BigDecimal.valueOf(-1),
                 5
         )).isInstanceOf(DomainException.class);
     }
@@ -61,12 +104,7 @@ void shouldNotCreateProductWithBlankName(){
 
     @Test
     void shouldIncreaseStock() {
-        Product product = new Product(
-                "Mouse",
-                "Mouse sem fio",
-                BigDecimal.valueOf(100),
-                5
-        );
+        Product product = createValidProduct();
 
         product.increaseStock(3);
 
@@ -75,25 +113,23 @@ void shouldNotCreateProductWithBlankName(){
 
     @Test
     void shouldNotIncreaseStockWithZeroQuantity() {
-        Product product = new Product(
-                "Mouse",
-                "Mouse sem fio",
-                BigDecimal.valueOf(100),
-                5
-        );
+        Product product = createValidProduct();
 
         assertThatThrownBy(() -> product.increaseStock(0))
                 .isInstanceOf(DomainException.class);
     }
 
     @Test
+    void shouldNotIncreaseStockWithNegativeQuantity() {
+        Product product = createValidProduct();
+
+        assertThatThrownBy(() -> product.increaseStock(-1))
+                .isInstanceOf(DomainException.class);
+    }
+
+    @Test
     void shouldDecreaseStock() {
-        Product product = new Product(
-                "Mouse",
-                "Mouse sem fio",
-                BigDecimal.valueOf(100),
-                5
-        );
+        Product product = createValidProduct();
 
         product.decreaseStock(2);
 
@@ -102,25 +138,31 @@ void shouldNotCreateProductWithBlankName(){
 
     @Test
     void shouldNotDecreaseStockBeyondAvailableQuantity() {
-        Product product = new Product(
-                "Mouse",
-                "Mouse sem fio",
-                BigDecimal.valueOf(100),
-                5
-        );
+        Product product = createValidProduct();
 
         assertThatThrownBy(() -> product.decreaseStock(6))
                 .isInstanceOf(DomainException.class);
     }
 
     @Test
+    void shouldNotDecreaseStockWithZeroQuantity() {
+        Product product = createValidProduct();
+
+        assertThatThrownBy(() -> product.decreaseStock(0))
+                .isInstanceOf(DomainException.class);
+    }
+
+    @Test
+    void shouldNotDecreaseStockWithNegativeQuantity() {
+        Product product = createValidProduct();
+
+        assertThatThrownBy(() -> product.decreaseStock(-1))
+                .isInstanceOf(DomainException.class);
+    }
+
+    @Test
     void shouldChangePrice() {
-        Product product = new Product(
-                "Mouse",
-                "Mouse sem fio",
-                BigDecimal.valueOf(100),
-                5
-        );
+        Product product = createValidProduct();
 
         product.changePrice(BigDecimal.valueOf(120));
 
@@ -128,13 +170,19 @@ void shouldNotCreateProductWithBlankName(){
     }
 
     @Test
+    void shouldUpdateUpdatedAtWhenChangingPrice() throws InterruptedException {
+        Product product = createValidProduct();
+        Instant previousUpdatedAt = product.getUpdatedAt();
+
+        waitUntilClockAdvances();
+        product.changePrice(BigDecimal.valueOf(120));
+
+        assertThat(product.getUpdatedAt()).isAfter(previousUpdatedAt);
+    }
+
+    @Test
     void shouldDeactivateProduct() {
-        Product product = new Product(
-                "Mouse",
-                "Mouse sem fio",
-                BigDecimal.valueOf(100),
-                5
-        );
+        Product product = createValidProduct();
 
         product.deactivate();
 
@@ -143,12 +191,7 @@ void shouldNotCreateProductWithBlankName(){
 
     @Test
     void shouldActivateProduct() {
-        Product product = new Product(
-                "Mouse",
-                "Mouse sem fio",
-                BigDecimal.valueOf(100),
-                5
-        );
+        Product product = createValidProduct();
 
         product.deactivate();
         product.activate();
@@ -158,25 +201,64 @@ void shouldNotCreateProductWithBlankName(){
 
     @Test
     void shouldReturnTrueWhenHasAvailableStock() {
-        Product product = new Product(
-                "Mouse",
-                "Mouse sem fio",
-                BigDecimal.valueOf(100),
-                5
-        );
+        Product product = createValidProduct();
 
         assertThat(product.hasAvailableStock(3)).isTrue();
     }
 
     @Test
     void shouldReturnFalseWhenDoesNotHaveAvailableStock() {
-        Product product = new Product(
+        Product product = createValidProduct();
+
+        assertThat(product.hasAvailableStock(6)).isFalse();
+    }
+
+    @Test
+    void shouldReturnFalseWhenCheckingAvailableStockWithZeroQuantity() {
+        Product product = createValidProduct();
+
+        assertThat(product.hasAvailableStock(0)).isFalse();
+    }
+
+    @Test
+    void shouldReturnFalseWhenCheckingAvailableStockWithNegativeQuantity() {
+        Product product = createValidProduct();
+
+        assertThat(product.hasAvailableStock(-1)).isFalse();
+    }
+
+    @Test
+    void shouldUpdateUpdatedAtWhenIncreasingStock() throws InterruptedException {
+        Product product = createValidProduct();
+        Instant previousUpdatedAt = product.getUpdatedAt();
+
+        waitUntilClockAdvances();
+        product.increaseStock(1);
+
+        assertThat(product.getUpdatedAt()).isAfter(previousUpdatedAt);
+    }
+
+    @Test
+    void shouldUpdateUpdatedAtWhenDecreasingStock() throws InterruptedException {
+        Product product = createValidProduct();
+        Instant previousUpdatedAt = product.getUpdatedAt();
+
+        waitUntilClockAdvances();
+        product.decreaseStock(1);
+
+        assertThat(product.getUpdatedAt()).isAfter(previousUpdatedAt);
+    }
+
+    private Product createValidProduct() {
+        return new Product(
                 "Mouse",
                 "Mouse sem fio",
                 BigDecimal.valueOf(100),
                 5
         );
+    }
 
-        assertThat(product.hasAvailableStock(6)).isFalse();
+    private void waitUntilClockAdvances() throws InterruptedException {
+        Thread.sleep(1);
     }
 }
