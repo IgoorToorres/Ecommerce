@@ -4,6 +4,7 @@ import com.ecommerce.application.product.ProductRepository;
 import com.ecommerce.domain.product.Product;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,6 +25,11 @@ public class ProductRepositoryAdapter implements ProductRepository {
     @Override
     public Optional<Product> findById(UUID id) {
        return productJpaRepository.findById(id);
+    }
+
+    @Override
+    public List<Product> findAll() {
+        return productJpaRepository.findAll();
     }
 
 }

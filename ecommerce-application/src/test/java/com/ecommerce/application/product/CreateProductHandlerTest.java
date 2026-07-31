@@ -5,6 +5,7 @@ import com.ecommerce.domain.product.Product;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -139,6 +140,11 @@ class CreateProductHandlerTest {
         @Override
         public Optional<Product> findById(UUID id) {
             return Optional.empty();
+        }
+
+        @Override
+        public List<Product> findAll() {
+            return List.of();
         }
 
         private boolean saveWasCalled() {
