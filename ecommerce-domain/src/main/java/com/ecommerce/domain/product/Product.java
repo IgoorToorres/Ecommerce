@@ -1,23 +1,48 @@
 package com.ecommerce.domain.product;
 
 import com.ecommerce.domain.exception.DomainException;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@Entity
+@Table(name = "products")
 public class Product {
 
     private static final int MAX_NAME_LENGTH = 150;
 
-    private final UUID id;
+    @Id
+    @Column(name = "id", nullable = false, updatable = false)
+    private UUID id;
+
+    @Column(name = "name", nullable = false, length = 150)
     private String name;
+
+    @Column(name = "description", length = 1000)
     private String description;
+
+    @Column(name = "price", nullable = false, precision = 19, scale = 2)
     private BigDecimal price;
+
+    @Column(name = "stock_quantity", nullable = false)
     private int stockQuantity;
+
+    @Column(name = "active", nullable = false)
     private boolean active;
-    private final Instant createdAt;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    protected Product(){}
 
     public Product(String name, String description, BigDecimal price, int stockQuantity) {
         validateName(name);
@@ -138,4 +163,6 @@ public class Product {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public long getVersion(){ return version; }
 }
