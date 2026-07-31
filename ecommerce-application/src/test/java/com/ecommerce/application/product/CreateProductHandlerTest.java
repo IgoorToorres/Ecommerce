@@ -5,6 +5,8 @@ import com.ecommerce.domain.product.Product;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -132,6 +134,11 @@ class CreateProductHandlerTest {
         public Product save(Product product) {
             this.savedProduct = product;
             return product;
+        }
+
+        @Override
+        public Optional<Product> findById(UUID id) {
+            return Optional.empty();
         }
 
         private boolean saveWasCalled() {

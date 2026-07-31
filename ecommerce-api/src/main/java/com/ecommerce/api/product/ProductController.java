@@ -2,22 +2,24 @@ package com.ecommerce.api.product;
 
 import com.ecommerce.application.product.CreateProductCommand;
 import com.ecommerce.application.product.CreateProductHandler;
+import com.ecommerce.application.product.GetProductByIdHandler;
 import com.ecommerce.application.product.ProductResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
     private final CreateProductHandler createProductHandler;
+    private final GetProductByIdHandler getProductByIdHandler;
 
-    public ProductController(CreateProductHandler createProductHandler){
+    public ProductController(CreateProductHandler createProductHandler, GetProductByIdHandler getProductByIdHandler){
         this.createProductHandler = createProductHandler;
+        this.getProductByIdHandler = getProductByIdHandler;
     }
 
     @PostMapping
@@ -33,6 +35,15 @@ public class ProductController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponse> findById(@PathVariable UUID id){
+        ProductResponse response = getProductByIdHandler.handle(id);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
                 .body(response);
     }
 }
