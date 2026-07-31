@@ -170,6 +170,131 @@ class ProductTest {
     }
 
     @Test
+    void shouldUpdateProductDetails() {
+        Product product = createValidProduct();
+
+        product.updateDetails(
+                " Teclado ",
+                "Teclado mecânico",
+                BigDecimal.valueOf(250),
+                8
+        );
+
+        assertThat(product.getName()).isEqualTo("Teclado");
+        assertThat(product.getDescription()).isEqualTo("Teclado mecânico");
+        assertThat(product.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(250));
+        assertThat(product.getStockQuantity()).isEqualTo(8);
+    }
+
+    @Test
+    void shouldNotUpdateProductWithNullName() {
+        Product product = createValidProduct();
+
+        assertInvalidUpdateDoesNotChangeProduct(
+                product,
+                null,
+                "Teclado mecânico",
+                BigDecimal.valueOf(250),
+                8
+        );
+    }
+
+    @Test
+    void shouldNotUpdateProductWithBlankName() {
+        Product product = createValidProduct();
+
+        assertInvalidUpdateDoesNotChangeProduct(
+                product,
+                " ",
+                "Teclado mecânico",
+                BigDecimal.valueOf(250),
+                8
+        );
+    }
+
+    @Test
+    void shouldNotUpdateProductWithNameLongerThan150Characters() {
+        Product product = createValidProduct();
+        String name = "a".repeat(151);
+
+        assertInvalidUpdateDoesNotChangeProduct(
+                product,
+                name,
+                "Teclado mecânico",
+                BigDecimal.valueOf(250),
+                8
+        );
+    }
+
+    @Test
+    void shouldNotUpdateProductWithNullPrice() {
+        Product product = createValidProduct();
+
+        assertInvalidUpdateDoesNotChangeProduct(
+                product,
+                "Teclado",
+                "Teclado mecânico",
+                null,
+                8
+        );
+    }
+
+    @Test
+    void shouldNotUpdateProductWithZeroPrice() {
+        Product product = createValidProduct();
+
+        assertInvalidUpdateDoesNotChangeProduct(
+                product,
+                "Teclado",
+                "Teclado mecânico",
+                BigDecimal.ZERO,
+                8
+        );
+    }
+
+    @Test
+    void shouldNotUpdateProductWithNegativePrice() {
+        Product product = createValidProduct();
+
+        assertInvalidUpdateDoesNotChangeProduct(
+                product,
+                "Teclado",
+                "Teclado mecânico",
+                BigDecimal.valueOf(-1),
+                8
+        );
+    }
+
+    @Test
+    void shouldNotUpdateProductWithNegativeStock() {
+        Product product = createValidProduct();
+
+        assertInvalidUpdateDoesNotChangeProduct(
+                product,
+                "Teclado",
+                "Teclado mecânico",
+                BigDecimal.valueOf(250),
+                -1
+        );
+    }
+
+    @Test
+    void shouldUpdateUpdatedAtWhenUpdatingProductDetails() throws InterruptedException {
+        Product product = createValidProduct();
+        Instant previousUpdatedAt = product.getUpdatedAt();
+
+        waitUntilClockAdvances();
+        product.updateDetails(
+                "Teclado",
+                "Teclado mecânico",
+                BigDecimal.valueOf(250),
+                8
+        );
+
+        assertThat(product.getUpdatedAt()).isAfter(previousUpdatedAt);
+    }
+
+    @Test
     void shouldUpdateUpdatedAtWhenChangingPrice() throws InterruptedException {
         Product product = createValidProduct();
         Instant previousUpdatedAt = product.getUpdatedAt();
@@ -256,6 +381,29 @@ class ProductTest {
                 BigDecimal.valueOf(100),
                 5
         );
+    }
+
+    private void assertInvalidUpdateDoesNotChangeProduct(
+            Product product,
+            String name,
+            String description,
+            BigDecimal price,
+            int stockQuantity
+    ) {
+        String previousName = product.getName();
+        String previousDescription = product.getDescription();
+        BigDecimal previousPrice = product.getPrice();
+        int previousStockQuantity = product.getStockQuantity();
+        Instant previousUpdatedAt = product.getUpdatedAt();
+
+        assertThatThrownBy(() -> product.updateDetails(name, description, price, stockQuantity))
+                .isInstanceOf(DomainException.class);
+
+        assertThat(product.getName()).isEqualTo(previousName);
+        assertThat(product.getDescription()).isEqualTo(previousDescription);
+        assertThat(product.getPrice()).isEqualByComparingTo(previousPrice);
+        assertThat(product.getStockQuantity()).isEqualTo(previousStockQuantity);
+        assertThat(product.getUpdatedAt()).isEqualTo(previousUpdatedAt);
     }
 
     private void waitUntilClockAdvances() throws InterruptedException {

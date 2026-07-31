@@ -98,6 +98,18 @@ public class Product {
         touch();
     }
 
+    public void updateDetails(String name, String description, BigDecimal price, int stockQuantity){
+        validateName(name);
+        validateInitialStock(stockQuantity);
+        validatePrice(price);
+
+        this.name = name.trim();
+        this.description = description;
+        this.price = price;
+        this.stockQuantity = stockQuantity;
+        touch();
+    }
+
     public boolean hasAvailableStock(int quantity) {
         return quantity > 0 && stockQuantity >= quantity;
     }
