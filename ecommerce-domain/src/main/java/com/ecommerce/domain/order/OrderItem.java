@@ -2,18 +2,39 @@ package com.ecommerce.domain.order;
 
 
 import com.ecommerce.domain.exception.DomainException;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Entity
+@Table(name = "order_items")
 public class OrderItem {
 
+    @Id
+    @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @Column(name = "product_id", nullable = false, updatable = false)
     private UUID productId;
+
+    @Column(name = "product_name", nullable = false, length = 150, updatable = false)
     private String productName;
+
+    @Column(name = "unit_price", nullable = false, precision = 19, scale = 2, updatable = false)
     private BigDecimal unitPrice;
+
+    @Column(name = "quantity", nullable = false, updatable = false)
     private int quantity;
+
+    @Column(name = "total_price", nullable = false, precision = 19, scale = 2, updatable = false)
     private BigDecimal totalPrice;
+
+    protected OrderItem(){}
 
     public OrderItem(UUID productId, String productName, BigDecimal unitPrice, int quantity){
         validateProductId(productId);
@@ -56,6 +77,14 @@ public class OrderItem {
         }
     }
 
+    void attachToOrder(Order order) {
+        if (order == null) {
+            throw new DomainException("O pedido do item é obrigatório.");
+        }
+
+        this.order = order;
+    }
+
     public UUID getId() {
         return id;
     }
@@ -78,5 +107,9 @@ public class OrderItem {
 
     public BigDecimal getTotalPrice() {
         return totalPrice;
+    }
+
+    Order getOrder() {
+        return order;
     }
 }

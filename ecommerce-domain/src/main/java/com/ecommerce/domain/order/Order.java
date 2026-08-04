@@ -1,23 +1,59 @@
 package com.ecommerce.domain.order;
 
 import com.ecommerce.domain.exception.DomainException;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Entity
+@Table(name = "orders")
 public class Order {
+
+    @Id
+    @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
+
+    @Column(name = "customer_id", nullable = false, updatable = false)
     private UUID customerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 30)
     private OrderStatus status;
+
+    @Column(name = "total_amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal totalAmount;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @Column(name = "paid_at")
     private Instant paidAt;
+
+    @Column(name = "cancelled_at")
     private Instant cancelledAt;
+
+    @Column(name = "shipped_at")
     private Instant shippedAt;
+
+    @Column(name = "delivered_at")
     private Instant deliveredAt;
-    private List<OrderItem> items;
+
+    @OneToMany(
+            mappedBy = "order",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<OrderItem> items = new ArrayList<>();
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    protected Order(){}
 
     public Order(UUID customerId, List<OrderItem> items) {
         validateCustomerId(customerId);
@@ -25,10 +61,14 @@ public class Order {
 
         this.id = UUID.randomUUID();
         this.customerId = customerId;
-        this.items = List.copyOf(items);
+        this.items = new ArrayList<>(items);
         this.totalAmount = calculateTotalAmount(items);
         this.status = OrderStatus.PENDING_PAYMENT;
         this.createdAt = Instant.now();
+
+        for (OrderItem item : this.items) {
+            item.attachToOrder(this);
+        }
     }
 
     private void validateCustomerId(UUID customerId){
@@ -137,6 +177,10 @@ public class Order {
     }
 
     public List<OrderItem> getItems() {
-        return items;
+        return List.copyOf(items);
+    }
+
+    public long getVersion() {
+        return version;
     }
 }
