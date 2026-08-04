@@ -3,9 +3,11 @@ package com.ecommerce.application.product.service;
 import com.ecommerce.application.exception.ResourceNotFoundException;
 import com.ecommerce.application.product.repository.ProductRepository;
 import com.ecommerce.domain.product.Product;
+import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Service
 public class DeleteProductService {
     private final ProductRepository productRepository;
 
