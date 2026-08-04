@@ -1,12 +1,14 @@
 package com.ecommerce.api.product;
 
-import com.ecommerce.application.product.CreateProductCommand;
-import com.ecommerce.application.product.CreateProductHandler;
-import com.ecommerce.application.product.GetProductByIdHandler;
-import com.ecommerce.application.product.ListProductsHandler;
-import com.ecommerce.application.product.ProductResponse;
-import com.ecommerce.application.product.UpdateProductCommand;
-import com.ecommerce.application.product.UpdateProductHandler;
+import com.ecommerce.api.product.request.CreateProductRequest;
+import com.ecommerce.api.product.request.UpdateProductRequest;
+import com.ecommerce.application.product.command.CreateProductCommand;
+import com.ecommerce.application.product.command.UpdateProductCommand;
+import com.ecommerce.application.product.response.ProductResponse;
+import com.ecommerce.application.product.service.CreateProductService;
+import com.ecommerce.application.product.service.GetProductByIdService;
+import com.ecommerce.application.product.service.ListProductsService;
+import com.ecommerce.application.product.service.UpdateProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,21 +26,21 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-    private final CreateProductHandler createProductHandler;
-    private final GetProductByIdHandler getProductByIdHandler;
-    private final ListProductsHandler listProductsHandler;
-    private final UpdateProductHandler updateProductHandler;
+    private final CreateProductService createProductService;
+    private final GetProductByIdService getProductByIdService;
+    private final ListProductsService listProductsService;
+    private final UpdateProductService updateProductService;
 
     public ProductController(
-            CreateProductHandler createProductHandler,
-            GetProductByIdHandler getProductByIdHandler,
-            ListProductsHandler listProductsHandler,
-            UpdateProductHandler updateProductHandler
+            CreateProductService createProductService,
+            GetProductByIdService getProductByIdService,
+            ListProductsService listProductsService,
+            UpdateProductService updateProductService
     ){
-        this.createProductHandler = createProductHandler;
-        this.getProductByIdHandler = getProductByIdHandler;
-        this.listProductsHandler = listProductsHandler;
-        this.updateProductHandler = updateProductHandler;
+        this.createProductService = createProductService;
+        this.getProductByIdService = getProductByIdService;
+        this.listProductsService = listProductsService;
+        this.updateProductService = updateProductService;
     }
 
     @PostMapping
@@ -50,7 +52,7 @@ public class ProductController {
                 request.stockQuantity()
         );
 
-        ProductResponse response = createProductHandler.handle(command);
+        ProductResponse response = createProductService.create(command);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -59,7 +61,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> findById(@PathVariable UUID id){
-        ProductResponse response = getProductByIdHandler.handle(id);
+        ProductResponse response = getProductByIdService.findById(id);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -68,7 +70,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAll(){
-        List<ProductResponse> response = listProductsHandler.handle();
+        List<ProductResponse> response = listProductsService.findAll();
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -85,7 +87,7 @@ public class ProductController {
                 request.stockQuantity()
         );
 
-        ProductResponse response = updateProductHandler.handle(command);
+        ProductResponse response = updateProductService.update(command);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

@@ -1,4 +1,4 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.command;
 
 import java.math.BigDecimal;
 import java.util.UUID;

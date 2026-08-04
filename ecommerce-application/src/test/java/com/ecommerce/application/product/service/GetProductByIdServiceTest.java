@@ -1,6 +1,8 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.service;
 
 import com.ecommerce.application.exception.ResourceNotFoundException;
+import com.ecommerce.application.product.repository.ProductRepository;
+import com.ecommerce.application.product.response.ProductResponse;
 import com.ecommerce.domain.product.Product;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +14,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class GetProductByIdHandlerTest {
+class GetProductByIdServiceTest {
 
     @Test
     void shouldGetProductById() {
@@ -23,9 +25,9 @@ class GetProductByIdHandlerTest {
                 8
         );
         FakeProductRepository productRepository = new FakeProductRepository(product);
-        GetProductByIdHandler handler = new GetProductByIdHandler(productRepository);
+        GetProductByIdService service = new GetProductByIdService(productRepository);
 
-        ProductResponse response = handler.handle(product.getId());
+        ProductResponse response = service.findById(product.getId());
 
         assertThat(response.id()).isEqualTo(product.getId());
         assertThat(response.name()).isEqualTo("Teclado");
@@ -40,9 +42,9 @@ class GetProductByIdHandlerTest {
     @Test
     void shouldThrowErrorWhenProductDoesNotExist() {
         FakeProductRepository productRepository = new FakeProductRepository(null);
-        GetProductByIdHandler handler = new GetProductByIdHandler(productRepository);
+        GetProductByIdService service = new GetProductByIdService(productRepository);
 
-        assertThatThrownBy(() -> handler.handle(UUID.randomUUID()))
+        assertThatThrownBy(() -> service.findById(UUID.randomUUID()))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Produto não encontrado.");
     }

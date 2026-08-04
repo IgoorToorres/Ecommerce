@@ -1,6 +1,9 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.service;
 
 import com.ecommerce.application.exception.ResourceNotFoundException;
+import com.ecommerce.application.product.command.UpdateProductCommand;
+import com.ecommerce.application.product.repository.ProductRepository;
+import com.ecommerce.application.product.response.ProductResponse;
 import com.ecommerce.domain.exception.DomainException;
 import com.ecommerce.domain.product.Product;
 import org.junit.jupiter.api.Test;
@@ -13,13 +16,13 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class UpdateProductHandlerTest {
+class UpdateProductServiceTest {
 
     @Test
     void shouldUpdateProduct() {
         Product product = createValidProduct();
         FakeProductRepository productRepository = new FakeProductRepository(product);
-        UpdateProductHandler handler = new UpdateProductHandler(productRepository);
+        UpdateProductService service = new UpdateProductService(productRepository);
         UpdateProductCommand command = new UpdateProductCommand(
                 product.getId(),
                 " Teclado ",
@@ -28,7 +31,7 @@ class UpdateProductHandlerTest {
                 8
         );
 
-        ProductResponse response = handler.handle(command);
+        ProductResponse response = service.update(command);
 
         assertThat(response.id()).isEqualTo(product.getId());
         assertThat(response.name()).isEqualTo("Teclado");
@@ -43,7 +46,7 @@ class UpdateProductHandlerTest {
     @Test
     void shouldThrowErrorWhenProductDoesNotExist() {
         FakeProductRepository productRepository = new FakeProductRepository(null);
-        UpdateProductHandler handler = new UpdateProductHandler(productRepository);
+        UpdateProductService service = new UpdateProductService(productRepository);
         UpdateProductCommand command = new UpdateProductCommand(
                 UUID.randomUUID(),
                 "Teclado",
@@ -52,7 +55,7 @@ class UpdateProductHandlerTest {
                 8
         );
 
-        assertThatThrownBy(() -> handler.handle(command))
+        assertThatThrownBy(() -> service.update(command))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Produto não encontrado.");
 
@@ -101,7 +104,7 @@ class UpdateProductHandlerTest {
     private void assertInvalidCommandDoesNotSave(UpdateProductCommand command) {
         Product product = createValidProduct();
         FakeProductRepository productRepository = new FakeProductRepository(product);
-        UpdateProductHandler handler = new UpdateProductHandler(productRepository);
+        UpdateProductService service = new UpdateProductService(productRepository);
 
         UpdateProductCommand commandWithExistingProductId = new UpdateProductCommand(
                 product.getId(),
@@ -111,7 +114,7 @@ class UpdateProductHandlerTest {
                 command.stockQuantity()
         );
 
-        assertThatThrownBy(() -> handler.handle(commandWithExistingProductId))
+        assertThatThrownBy(() -> service.update(commandWithExistingProductId))
                 .isInstanceOf(DomainException.class);
 
         assertThat(productRepository.saveWasCalled()).isFalse();

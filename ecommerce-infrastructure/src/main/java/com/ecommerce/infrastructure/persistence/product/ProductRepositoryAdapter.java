@@ -1,6 +1,6 @@
 package com.ecommerce.infrastructure.persistence.product;
 
-import com.ecommerce.application.product.ProductRepository;
+import com.ecommerce.application.product.repository.ProductRepository;
 import com.ecommerce.domain.product.Product;
 import org.springframework.stereotype.Repository;
 

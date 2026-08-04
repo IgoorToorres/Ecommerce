@@ -1,5 +1,7 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.service;
 
+import com.ecommerce.application.product.repository.ProductRepository;
+import com.ecommerce.application.product.response.ProductResponse;
 import com.ecommerce.domain.product.Product;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +12,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ListProductsHandlerTest {
+class ListProductsServiceTest {
 
     @Test
     void shouldListProducts() {
@@ -27,9 +29,9 @@ class ListProductsHandlerTest {
                 8
         );
         FakeProductRepository productRepository = new FakeProductRepository(List.of(mouse, keyboard));
-        ListProductsHandler handler = new ListProductsHandler(productRepository);
+        ListProductsService service = new ListProductsService(productRepository);
 
-        List<ProductResponse> responses = handler.handle();
+        List<ProductResponse> responses = service.findAll();
 
         assertThat(responses).hasSize(2);
         assertThat(responses.getFirst().id()).isEqualTo(mouse.getId());
@@ -50,9 +52,9 @@ class ListProductsHandlerTest {
     @Test
     void shouldReturnEmptyListWhenThereAreNoProducts() {
         FakeProductRepository productRepository = new FakeProductRepository(List.of());
-        ListProductsHandler handler = new ListProductsHandler(productRepository);
+        ListProductsService service = new ListProductsService(productRepository);
 
-        List<ProductResponse> responses = handler.handle();
+        List<ProductResponse> responses = service.findAll();
 
         assertThat(responses).isEmpty();
     }

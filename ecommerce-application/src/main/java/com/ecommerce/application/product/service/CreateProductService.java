@@ -1,18 +1,20 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.service;
 
-
+import com.ecommerce.application.product.command.CreateProductCommand;
+import com.ecommerce.application.product.repository.ProductRepository;
+import com.ecommerce.application.product.response.ProductResponse;
 import com.ecommerce.domain.product.Product;
 import org.springframework.stereotype.Service;
 
 @Service
-public final class CreateProductHandler {
+public final class CreateProductService {
     private final ProductRepository productRepository;
 
-    public CreateProductHandler(ProductRepository productRepository){
+    public CreateProductService(ProductRepository productRepository){
         this.productRepository = productRepository;
     }
 
-    public ProductResponse handle(CreateProductCommand command){
+    public ProductResponse create(CreateProductCommand command){
         Product product = new Product(
                 command.name(),
                 command.description(),

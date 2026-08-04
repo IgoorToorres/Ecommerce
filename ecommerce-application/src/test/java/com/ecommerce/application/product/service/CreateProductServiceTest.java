@@ -1,5 +1,8 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.service;
 
+import com.ecommerce.application.product.command.CreateProductCommand;
+import com.ecommerce.application.product.repository.ProductRepository;
+import com.ecommerce.application.product.response.ProductResponse;
 import com.ecommerce.domain.exception.DomainException;
 import com.ecommerce.domain.product.Product;
 import org.junit.jupiter.api.Test;
@@ -12,12 +15,12 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class CreateProductHandlerTest {
+class CreateProductServiceTest {
 
     @Test
     void shouldCreateProduct() {
         FakeProductRepository productRepository = new FakeProductRepository();
-        CreateProductHandler handler = new CreateProductHandler(productRepository);
+        CreateProductService service = new CreateProductService(productRepository);
         CreateProductCommand command = new CreateProductCommand(
                 "Mouse",
                 "Mouse sem fio",
@@ -25,7 +28,7 @@ class CreateProductHandlerTest {
                 5
         );
 
-        ProductResponse response = handler.handle(command);
+        ProductResponse response = service.create(command);
 
         assertThat(response.id()).isNotNull();
         assertThat(response.name()).isEqualTo("Mouse");
@@ -119,9 +122,9 @@ class CreateProductHandlerTest {
 
     private void assertInvalidCommandDoesNotSave(CreateProductCommand command) {
         FakeProductRepository productRepository = new FakeProductRepository();
-        CreateProductHandler handler = new CreateProductHandler(productRepository);
+        CreateProductService service = new CreateProductService(productRepository);
 
-        assertThatThrownBy(() -> handler.handle(command))
+        assertThatThrownBy(() -> service.create(command))
                 .isInstanceOf(DomainException.class);
 
         assertThat(productRepository.saveWasCalled()).isFalse();

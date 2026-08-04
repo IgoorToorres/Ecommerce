@@ -1,5 +1,7 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.service;
 
+import com.ecommerce.application.product.repository.ProductRepository;
+import com.ecommerce.application.product.response.ProductResponse;
 import com.ecommerce.domain.product.Product;
 import org.springframework.stereotype.Service;
 
@@ -7,14 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ListProductsHandler {
+public class ListProductsService {
     private final ProductRepository productRepository;
 
-    public ListProductsHandler(ProductRepository productRepository){
+    public ListProductsService(ProductRepository productRepository){
         this.productRepository = productRepository;
     }
 
-    public List<ProductResponse> handle(){
+    public List<ProductResponse> findAll(){
         List<Product> products = productRepository.findAll();
         List<ProductResponse> responses = new ArrayList<>();
 

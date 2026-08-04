@@ -1,4 +1,4 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.response;
 
 import java.math.BigDecimal;
 import java.time.Instant;

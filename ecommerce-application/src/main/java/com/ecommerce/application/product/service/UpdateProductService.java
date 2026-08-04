@@ -1,18 +1,21 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.service;
 
 import com.ecommerce.application.exception.ResourceNotFoundException;
+import com.ecommerce.application.product.command.UpdateProductCommand;
+import com.ecommerce.application.product.repository.ProductRepository;
+import com.ecommerce.application.product.response.ProductResponse;
 import com.ecommerce.domain.product.Product;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UpdateProductHandler {
+public class UpdateProductService {
     private final ProductRepository productRepository;
 
-    public UpdateProductHandler(ProductRepository productRepository){
+    public UpdateProductService(ProductRepository productRepository){
         this.productRepository = productRepository;
     }
 
-    public ProductResponse handle(UpdateProductCommand command){
+    public ProductResponse update(UpdateProductCommand command){
         Product product = productRepository.findById(command.id())
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado."));
 

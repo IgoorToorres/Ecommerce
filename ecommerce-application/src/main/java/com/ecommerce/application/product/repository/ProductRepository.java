@@ -1,4 +1,4 @@
-package com.ecommerce.application.product;
+package com.ecommerce.application.product.repository;
 
 import com.ecommerce.domain.product.Product;
 
