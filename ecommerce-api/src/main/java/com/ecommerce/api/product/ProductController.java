@@ -5,20 +5,11 @@ import com.ecommerce.api.product.request.UpdateProductRequest;
 import com.ecommerce.application.product.command.CreateProductCommand;
 import com.ecommerce.application.product.command.UpdateProductCommand;
 import com.ecommerce.application.product.response.ProductResponse;
-import com.ecommerce.application.product.service.CreateProductService;
-import com.ecommerce.application.product.service.GetProductByIdService;
-import com.ecommerce.application.product.service.ListProductsService;
-import com.ecommerce.application.product.service.UpdateProductService;
+import com.ecommerce.application.product.service.*;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,17 +21,21 @@ public class ProductController {
     private final GetProductByIdService getProductByIdService;
     private final ListProductsService listProductsService;
     private final UpdateProductService updateProductService;
+    private final DeleteProductService deleteProductService;
 
     public ProductController(
             CreateProductService createProductService,
             GetProductByIdService getProductByIdService,
             ListProductsService listProductsService,
-            UpdateProductService updateProductService
+            UpdateProductService updateProductService,
+            DeleteProductService deleteProductService
     ){
         this.createProductService = createProductService;
         this.getProductByIdService = getProductByIdService;
         this.listProductsService = listProductsService;
         this.updateProductService = updateProductService;
+        this.deleteProductService = deleteProductService;
+
     }
 
     @PostMapping
@@ -93,5 +88,12 @@ public class ProductController {
                 .status(HttpStatus.OK)
                 .body(response);
 
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id){
+        deleteProductService.delete(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
