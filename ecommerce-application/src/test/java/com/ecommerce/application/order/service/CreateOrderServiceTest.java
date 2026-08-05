@@ -3,8 +3,10 @@ package com.ecommerce.application.order.service;
 import com.ecommerce.application.exception.ResourceNotFoundException;
 import com.ecommerce.application.order.command.CreateOrderCommand;
 import com.ecommerce.application.order.command.CreateOrderItemCommand;
+import com.ecommerce.application.order.mapper.OrderResponseMapper;
 import com.ecommerce.application.order.repository.OrderRepository;
 import com.ecommerce.application.order.response.OrderResponse;
+import com.ecommerce.application.order.response.PageResponse;
 import com.ecommerce.application.product.repository.ProductRepository;
 import com.ecommerce.domain.exception.DomainException;
 import com.ecommerce.domain.order.Order;
@@ -29,7 +31,7 @@ class CreateOrderServiceTest {
         Product keyboard = createProduct("Teclado", BigDecimal.valueOf(250), 3);
         FakeOrderRepository orderRepository = new FakeOrderRepository();
         FakeProductRepository productRepository = new FakeProductRepository(List.of(mouse, keyboard));
-        CreateOrderService service = new CreateOrderService(orderRepository, productRepository);
+        CreateOrderService service = createService(orderRepository, productRepository);
         CreateOrderCommand command = new CreateOrderCommand(
                 UUID.randomUUID(),
                 List.of(
@@ -62,7 +64,7 @@ class CreateOrderServiceTest {
     void shouldThrowErrorWhenProductDoesNotExist() {
         FakeOrderRepository orderRepository = new FakeOrderRepository();
         FakeProductRepository productRepository = new FakeProductRepository(List.of());
-        CreateOrderService service = new CreateOrderService(orderRepository, productRepository);
+        CreateOrderService service = createService(orderRepository, productRepository);
         CreateOrderCommand command = new CreateOrderCommand(
                 UUID.randomUUID(),
                 List.of(new CreateOrderItemCommand(UUID.randomUUID(), 1))
@@ -81,7 +83,7 @@ class CreateOrderServiceTest {
         product.deactivate();
         FakeOrderRepository orderRepository = new FakeOrderRepository();
         FakeProductRepository productRepository = new FakeProductRepository(List.of(product));
-        CreateOrderService service = new CreateOrderService(orderRepository, productRepository);
+        CreateOrderService service = createService(orderRepository, productRepository);
         CreateOrderCommand command = new CreateOrderCommand(
                 UUID.randomUUID(),
                 List.of(new CreateOrderItemCommand(product.getId(), 1))
@@ -100,7 +102,7 @@ class CreateOrderServiceTest {
         Product product = createProduct("Mouse", BigDecimal.valueOf(100), 1);
         FakeOrderRepository orderRepository = new FakeOrderRepository();
         FakeProductRepository productRepository = new FakeProductRepository(List.of(product));
-        CreateOrderService service = new CreateOrderService(orderRepository, productRepository);
+        CreateOrderService service = createService(orderRepository, productRepository);
         CreateOrderCommand command = new CreateOrderCommand(
                 UUID.randomUUID(),
                 List.of(new CreateOrderItemCommand(product.getId(), 2))
@@ -119,7 +121,7 @@ class CreateOrderServiceTest {
         Product product = createProduct("Mouse", BigDecimal.valueOf(100), 5);
         FakeOrderRepository orderRepository = new FakeOrderRepository();
         FakeProductRepository productRepository = new FakeProductRepository(List.of(product));
-        CreateOrderService service = new CreateOrderService(orderRepository, productRepository);
+        CreateOrderService service = createService(orderRepository, productRepository);
         CreateOrderCommand command = new CreateOrderCommand(
                 UUID.randomUUID(),
                 List.of(new CreateOrderItemCommand(product.getId(), 0))
@@ -141,6 +143,17 @@ class CreateOrderServiceTest {
         );
     }
 
+    private CreateOrderService createService(
+            OrderRepository orderRepository,
+            ProductRepository productRepository
+    ) {
+        return new CreateOrderService(
+                orderRepository,
+                productRepository,
+                new OrderResponseMapper()
+        );
+    }
+
     private static final class FakeOrderRepository implements OrderRepository {
 
         private Order savedOrder;
@@ -159,6 +172,11 @@ class CreateOrderServiceTest {
         @Override
         public List<Order> findAll() {
             return List.of();
+        }
+
+        @Override
+        public PageResponse<Order> findAll(UUID customerId, OrderStatus status, int page, int size) {
+            return new PageResponse<>(List.of(), page, size, 0, 0);
         }
 
         private boolean saveWasCalled() {

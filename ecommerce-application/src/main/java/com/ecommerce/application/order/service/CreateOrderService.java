@@ -3,8 +3,8 @@ package com.ecommerce.application.order.service;
 import com.ecommerce.application.exception.ResourceNotFoundException;
 import com.ecommerce.application.order.command.CreateOrderCommand;
 import com.ecommerce.application.order.command.CreateOrderItemCommand;
+import com.ecommerce.application.order.mapper.OrderResponseMapper;
 import com.ecommerce.application.order.repository.OrderRepository;
-import com.ecommerce.application.order.response.OrderItemResponse;
 import com.ecommerce.application.order.response.OrderResponse;
 import com.ecommerce.application.product.repository.ProductRepository;
 import com.ecommerce.domain.exception.DomainException;
@@ -21,10 +21,16 @@ import java.util.List;
 public class CreateOrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final OrderResponseMapper orderResponseMapper;
 
-    public CreateOrderService(OrderRepository orderRepository, ProductRepository productRepository) {
+    public CreateOrderService(
+            OrderRepository orderRepository,
+            ProductRepository productRepository,
+            OrderResponseMapper orderResponseMapper
+    ) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
+        this.orderResponseMapper = orderResponseMapper;
     }
 
     @Transactional
@@ -58,34 +64,6 @@ public class CreateOrderService {
         Order order = new Order(command.customerId(), orderItems);
         Order savedOrder = orderRepository.save(order);
 
-        return toResponse(savedOrder);
-    }
-
-    private OrderResponse toResponse(Order order) {
-        List<OrderItemResponse> itemResponses = new ArrayList<>();
-
-        for (OrderItem item : order.getItems()) {
-            itemResponses.add(new OrderItemResponse(
-                    item.getId(),
-                    item.getProductId(),
-                    item.getProductName(),
-                    item.getUnitPrice(),
-                    item.getQuantity(),
-                    item.getTotalPrice()
-            ));
-        }
-
-        return new OrderResponse(
-                order.getId(),
-                order.getCustomerId(),
-                order.getStatus(),
-                order.getTotalAmount(),
-                order.getCreatedAt(),
-                order.getPaidAt(),
-                order.getCancelledAt(),
-                order.getShippedAt(),
-                order.getDeliveredAt(),
-                itemResponses
-        );
+        return orderResponseMapper.toResponse(savedOrder);
     }
 }
