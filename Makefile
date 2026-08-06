@@ -3,7 +3,7 @@
 dev: db-up install run
 
 run:
-	./mvnw -pl ecommerce-api spring-boot:run
+	set -a; . ./.env; set +a; ./mvnw -pl ecommerce-api spring-boot:run
 
 install:
 	./mvnw install -DskipTests

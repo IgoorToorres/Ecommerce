@@ -1,8 +1,12 @@
 package com.ecommerce.api.auth;
 
+import com.ecommerce.api.auth.request.LoginRequest;
 import com.ecommerce.api.auth.request.RegisterUserRequest;
+import com.ecommerce.application.user.command.LoginCommand;
 import com.ecommerce.application.user.command.RegisterUserCommand;
+import com.ecommerce.application.user.response.AuthResponse;
 import com.ecommerce.application.user.response.UserResponse;
+import com.ecommerce.application.user.service.LoginService;
 import com.ecommerce.application.user.service.RegisterUserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,9 +22,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "auth")
 public class AuthController {
     private final RegisterUserService registerUserService;
+    private final LoginService loginService;
 
-    public AuthController(RegisterUserService registerUserService){
+    public AuthController(
+            RegisterUserService registerUserService,
+            LoginService loginService
+    ){
         this.registerUserService = registerUserService;
+        this.loginService = loginService;
     }
 
     @PostMapping("/register")
@@ -36,6 +45,20 @@ public class AuthController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request){
+        LoginCommand command = new LoginCommand(
+                request.email(),
+                request.password()
+        );
+
+        AuthResponse response = loginService.login(command);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
                 .body(response);
     }
 }
