@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -60,7 +61,11 @@ public class ProductController {
     }
 
     @PostMapping
-    @Operation(summary = "Criar produto", description = "Cadastra um novo produto ativo no catalogo.")
+    @Operation(
+            summary = "Criar produto",
+            description = "Cadastra um novo produto ativo no catálogo. Requer usuário com perfil ADMIN.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "201",
@@ -70,6 +75,16 @@ public class ProductController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Dados de entrada invalidos",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Token de autenticação não informado ou inválido",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Usuário sem permissão para criar produtos",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
             )
     })
@@ -129,7 +144,11 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar produto", description = "Atualiza os dados cadastrais de um produto existente.")
+    @Operation(
+            summary = "Atualizar produto",
+            description = "Atualiza os dados cadastrais de um produto existente. Requer usuário com perfil ADMIN.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
@@ -144,6 +163,16 @@ public class ProductController {
             @ApiResponse(
                     responseCode = "404",
                     description = "Produto nao encontrado",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Token de autenticação não informado ou inválido",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Usuário sem permissão para atualizar produtos",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
             )
     })
@@ -169,12 +198,26 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Desativar produto", description = "Realiza delete logico, marcando o produto como inativo.")
+    @Operation(
+            summary = "Desativar produto",
+            description = "Realiza delete lógico, marcando o produto como inativo. Requer usuário com perfil ADMIN.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Produto desativado com sucesso"),
             @ApiResponse(
                     responseCode = "404",
                     description = "Produto nao encontrado",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Token de autenticação não informado ou inválido",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Usuário sem permissão para desativar produtos",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
             )
     })

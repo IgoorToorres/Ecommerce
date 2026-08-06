@@ -3,6 +3,7 @@ package com.ecommerce.application.user.service;
 import com.ecommerce.application.user.command.LoginCommand;
 import com.ecommerce.application.user.repository.UserRepository;
 import com.ecommerce.application.user.response.AuthResponse;
+import com.ecommerce.application.user.security.AuthenticatedUser;
 import com.ecommerce.application.user.security.PasswordHasher;
 import com.ecommerce.application.user.security.TokenService;
 import com.ecommerce.domain.exception.DomainException;
@@ -176,6 +177,11 @@ class LoginServiceTest {
         public AuthResponse generateToken(User user) {
             this.receivedUser = user;
             return new AuthResponse("access-token", "Bearer", 3600L);
+        }
+
+        @Override
+        public AuthenticatedUser validateToken(String token) {
+            return null;
         }
 
         private boolean generateTokenWasCalled() {
