@@ -2,13 +2,17 @@ package com.ecommerce.infrastructure.security;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.ecommerce.application.user.response.AuthResponse;
+import com.ecommerce.application.user.security.AuthenticatedUser;
 import com.ecommerce.application.user.security.TokenService;
 import com.ecommerce.domain.user.User;
+import com.ecommerce.domain.user.UserRole;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Component
 public class JwtTokenService implements TokenService {
@@ -41,6 +45,19 @@ public class JwtTokenService implements TokenService {
                 token,
                 "Bearer",
                 expirationSeconds
+        );
+    }
+
+    @Override
+    public AuthenticatedUser validateToken(String token) {
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(secret))
+                .build()
+                .verify(token);
+
+        return new AuthenticatedUser(
+                UUID.fromString(decodedJWT.getSubject()),
+                decodedJWT.getClaim("email").asString(),
+                UserRole.valueOf(decodedJWT.getClaim("role").asString())
         );
     }
 }

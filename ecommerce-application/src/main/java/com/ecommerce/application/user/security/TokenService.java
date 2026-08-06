@@ -7,4 +7,5 @@ import org.springframework.stereotype.Component;
 @Component
 public interface TokenService {
     AuthResponse generateToken(User user);
+    AuthenticatedUser validateToken(String token);
 }
