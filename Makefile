@@ -1,4 +1,4 @@
-.PHONY: dev run install test build db-up db-down
+.PHONY: dev run install test build db-up db-down docker-up docker-down
 
 dev: db-up install run
 
@@ -15,7 +15,13 @@ build:
 	./mvnw clean verify
 
 db-up:
-	docker compose up -d
+	docker compose up -d postgres
 
 db-down:
+	docker compose down
+
+docker-up:
+	docker compose up -d --build
+
+docker-down:
 	docker compose down

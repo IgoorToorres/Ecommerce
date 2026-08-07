@@ -115,9 +115,10 @@ Crie um arquivo `.env` na raiz do projeto com as variáveis:
 ```env
 POSTGRES_DB=ecommerce
 POSTGRES_USER=ecommerce
-POSTGRES_PASSWORD=ecommerce
+POSTGRES_PASSWORD=change_me
 POSTGRES_PORT=5432
-JWT_SECRET=sua-chave-secreta-com-pelo-menos-32-caracteres
+API_PORT=8080
+JWT_SECRET=change_me_with_at_least_32_characters
 JWT_EXPIRATION_SECONDS=3600
 ```
 
@@ -138,8 +139,38 @@ Comandos úteis:
 ```bash
 make db-up
 make db-down
+make docker-up
+make docker-down
 make test
 make build
+```
+
+## Rodando Com Docker Compose
+
+Para subir a API e o PostgreSQL juntos em containers:
+
+```bash
+make docker-up
+```
+
+Ou diretamente:
+
+```bash
+docker compose up -d --build
+```
+
+Para parar os containers:
+
+```bash
+make docker-down
+```
+
+Nesse modo, a API é construída pelo `Dockerfile` e usa o serviço `postgres` como host do banco dentro da rede do Docker Compose.
+
+Para rodar somente o banco em container e a API localmente via Maven:
+
+```bash
+make dev
 ```
 
 ## Documentação Da API
@@ -194,17 +225,22 @@ O projeto possui pipeline com GitHub Actions em:
 .github/workflows/ci.yml
 ```
 
-A cada `push` ou `pull_request` para `main` ou `develop`, o pipeline executa:
+A cada `push` ou `pull_request` para `main` ou `master`, o pipeline executa:
 
 ```bash
 ./mvnw test
 ./mvnw verify
 ```
 
+O pipeline configura variáveis de ambiente próprias para CI e sobe um PostgreSQL de teste como serviço, então ele não depende do arquivo `.env` local.
+
 ## Estrutura De Pastas
 
 ```text
 .
+├── .github/workflows
+├── Dockerfile
+├── .dockerignore
 ├── ecommerce-api
 ├── ecommerce-application
 ├── ecommerce-domain
@@ -216,10 +252,9 @@ A cada `push` ou `pull_request` para `main` ou `develop`, o pipeline executa:
 
 ## Próximos Passos
 
+- Observabilidade com Spring Actuator.
 - Fluxo de pagamento de pedido.
 - Cancelamento de pedido.
 - Avanço de status do pedido: pago, enviado e entregue.
 - Testes com Testcontainers.
-- Dockerfile da API.
 - Collection Postman/Insomnia.
-- Observabilidade com Spring Actuator.
