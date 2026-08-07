@@ -38,3 +38,9 @@ management:
       probes:
         enabled: true
       show-details: never
+
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  capacity: ${RATE_LIMIT_CAPACITY:60}
+  refill-tokens: ${RATE_LIMIT_REFILL_TOKENS:60}
+  refill-duration-seconds: ${RATE_LIMIT_REFILL_DURATION_SECONDS:60}

@@ -4,6 +4,7 @@ import com.ecommerce.api.auth.AuthController;
 import com.ecommerce.api.exception.GlobalExceptionHandler;
 import com.ecommerce.api.order.OrderController;
 import com.ecommerce.api.product.ProductController;
+import com.ecommerce.api.ratelimit.RateLimitFilter;
 import com.ecommerce.application.order.response.OrderResponse;
 import com.ecommerce.application.order.response.PageResponse;
 import com.ecommerce.application.order.service.CreateOrderService;
@@ -60,6 +61,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ProductController.class,
         SecurityConfig.class,
         JwtAuthenticationFilter.class,
+        RateLimitFilter.class,
         GlobalExceptionHandler.class
 })
 @ImportAutoConfiguration({

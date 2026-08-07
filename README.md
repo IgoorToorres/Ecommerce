@@ -15,6 +15,7 @@ O projeto simula fluxos comuns de um backend de mercado, como cadastro de produt
 - Flyway
 - JWT
 - BCrypt
+- Bucket4j
 - Maven
 - Docker Compose
 - Swagger/OpenAPI
@@ -46,6 +47,7 @@ Essa estrutura ajuda a manter as regras de negócio separadas de detalhes técni
 - Login com JWT.
 - Proteção de rotas autenticadas.
 - Autorização por perfil `ADMIN` e `CUSTOMER`.
+- Rate limit por origem da requisição.
 - Tratamento padronizado de erros.
 - Documentação com Swagger/OpenAPI.
 - Pipeline de CI com GitHub Actions.
@@ -85,6 +87,25 @@ Regras principais:
 - Requisições sem token retornam `401 Unauthorized`.
 - Requisições sem permissão retornam `403 Forbidden`.
 
+## Rate Limit
+
+A API possui rate limit em memória por origem da requisição. Por padrão, cada origem pode fazer 60 requisições por minuto.
+
+Quando o limite é excedido, a API retorna:
+
+```http
+429 Too Many Requests
+```
+
+As rotas de documentação e health check são ignoradas pelo rate limit:
+
+```text
+/docs
+/swagger-ui/**
+/v3/api-docs/**
+/actuator/health/**
+```
+
 ## Tratamento De Erros
 
 As respostas de erro seguem um formato único:
@@ -106,6 +127,7 @@ Erros tratados:
 - regra de negócio
 - token ausente ou inválido
 - acesso negado
+- excesso de requisições
 - erro inesperado
 
 ## Como Rodar
@@ -120,6 +142,10 @@ POSTGRES_PORT=5432
 API_PORT=8080
 JWT_SECRET=change_me_with_at_least_32_characters
 JWT_EXPIRATION_SECONDS=3600
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_CAPACITY=60
+RATE_LIMIT_REFILL_TOKENS=60
+RATE_LIMIT_REFILL_DURATION_SECONDS=60
 ```
 
 Suba banco, instale os módulos e rode a API:
@@ -234,6 +260,7 @@ Os testes cobrem:
 - autenticação e autorização na API
 - acesso público ao Swagger
 - acesso público ao health check
+- bloqueio por excesso de requisições
 - permissões por perfil
 
 ## CI/CD
