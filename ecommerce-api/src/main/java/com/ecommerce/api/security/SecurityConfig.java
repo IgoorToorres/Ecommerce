@@ -31,13 +31,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(
+                                "/api/auth/register",
+                                "/api/auth/login",
                                 "/docs",
-                                "/docs/**",
-                                "/swagger-ui.html",
                                 "/swagger-ui/**",
-                                "/v3/api-docs",
                                 "/v3/api-docs/**",
-                                "/error"
+                                "/actuator/health",
+                                "/actuator/health/**"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()

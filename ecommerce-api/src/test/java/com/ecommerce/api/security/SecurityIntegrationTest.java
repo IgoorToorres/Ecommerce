@@ -267,4 +267,14 @@ class SecurityIntegrationTest {
 
         assertThat(status).isNotIn(401, 403);
     }
+
+    @Test
+    void shouldNotBlockActuatorHealthEndpointWithSecurity() throws Exception {
+        int status = mockMvc.perform(get("/actuator/health"))
+                .andReturn()
+                .getResponse()
+                .getStatus();
+
+        assertThat(status).isNotIn(401, 403);
+    }
 }

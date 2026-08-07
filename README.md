@@ -167,6 +167,12 @@ make docker-down
 
 Nesse modo, a API é construída pelo `Dockerfile` e usa o serviço `postgres` como host do banco dentro da rede do Docker Compose.
 
+O container da API possui healthcheck apontando para:
+
+```text
+GET /actuator/health/readiness
+```
+
 Para rodar somente o banco em container e a API localmente via Maven:
 
 ```bash
@@ -194,6 +200,18 @@ Para testar rotas protegidas no Swagger:
 3. Clique em `Authorize`.
 4. Informe `Bearer <accessToken>`.
 
+## Health Check
+
+A aplicação expõe health check público com Spring Boot Actuator:
+
+```text
+GET /actuator/health
+GET /actuator/health/liveness
+GET /actuator/health/readiness
+```
+
+Essas rotas podem ser usadas por Docker, Kubernetes, pipelines ou serviços de monitoramento.
+
 ## Como Testar
 
 Rodar todos os testes:
@@ -215,6 +233,7 @@ Os testes cobrem:
 - criação e validação de JWT
 - autenticação e autorização na API
 - acesso público ao Swagger
+- acesso público ao health check
 - permissões por perfil
 
 ## CI/CD
@@ -252,7 +271,6 @@ O pipeline configura variáveis de ambiente próprias para CI e sobe um PostgreS
 
 ## Próximos Passos
 
-- Observabilidade com Spring Actuator.
 - Fluxo de pagamento de pedido.
 - Cancelamento de pedido.
 - Avanço de status do pedido: pago, enviado e entregue.
