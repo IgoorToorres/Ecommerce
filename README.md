@@ -22,6 +22,7 @@ O projeto simula fluxos comuns de um backend de mercado, como cadastro de produt
 - JUnit 5
 - AssertJ
 - Mockito
+- Testcontainers
 - GitHub Actions
 
 ## Arquitetura
@@ -262,6 +263,8 @@ Os testes cobrem:
 - acesso público ao health check
 - bloqueio por excesso de requisições
 - permissões por perfil
+- adapters de persistência com PostgreSQL real via Testcontainers
+- execução das migrations Flyway nos testes de integração
 
 ## CI/CD
 
@@ -301,5 +304,4 @@ O pipeline configura variáveis de ambiente próprias para CI e sobe um PostgreS
 - Fluxo de pagamento de pedido.
 - Cancelamento de pedido.
 - Avanço de status do pedido: pago, enviado e entregue.
-- Testes com Testcontainers.
 - Collection Postman/Insomnia.
