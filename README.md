@@ -1,65 +1,121 @@
 # Ecommerce API
 
-API REST de ecommerce desenvolvida em Java e Spring Boot, com foco em arquitetura modular, autenticação com JWT, controle de acesso por perfil, persistência com PostgreSQL e validação automatizada com testes e CI.
+API REST de ecommerce desenvolvida em Java e Spring Boot, com arquitetura modular, autenticação JWT, controle de acesso por perfil, persistência com PostgreSQL, migrations com Flyway e testes automatizados.
 
-O projeto simula fluxos comuns de um backend de mercado, como cadastro de produtos, criação de pedidos, baixa de estoque, autenticação de usuários e proteção de rotas.
+O projeto simula um backend de loja com cadastro de produtos, criação de pedidos, baixa de estoque, pagamento simulado com idempotência e proteção de rotas por perfil.
 
-## Tecnologias
+## Destaques Técnicos
 
-- Java 25
-- Spring Boot 4
-- Spring Web MVC
-- Spring Security
-- Spring Data JPA
-- PostgreSQL
-- Flyway
-- JWT
-- BCrypt
-- Bucket4j
-- Maven
-- Docker Compose
-- Swagger/OpenAPI
-- JUnit 5
-- AssertJ
-- Mockito
-- Testcontainers
-- GitHub Actions
+- Monólito modular com separação entre `domain`, `application`, `infrastructure` e `api`.
+- Regras de negócio encapsuladas em entidades de domínio, sem setters públicos indiscriminados.
+- Autenticação com JWT e autorização por perfis `ADMIN` e `CUSTOMER`.
+- Criação de pedidos com validação de produto ativo e baixa automática de estoque.
+- Pagamento simulado com aprovação, recusa, idempotência e atualização transacional do pedido.
+- Migrations versionadas com Flyway e validação de schema via Hibernate `ddl-auto=validate`.
+- Testes unitários e de integração com JUnit 5, AssertJ, Mockito e Testcontainers.
+- Documentação HTTP com Swagger/OpenAPI.
+- Pipeline de CI com GitHub Actions.
+
+## Stack
+
+```text
+Java 25
+Spring Boot 4
+Spring Web MVC
+Spring Security
+Spring Data JPA
+PostgreSQL
+Flyway
+JWT
+BCrypt
+Bucket4j
+Maven
+Docker Compose
+Swagger/OpenAPI
+JUnit 5
+AssertJ
+Mockito
+Testcontainers
+GitHub Actions
+```
 
 ## Arquitetura
 
-O projeto é dividido em módulos Maven para separar responsabilidades:
+O projeto usa Maven multi-módulo para deixar as responsabilidades explícitas:
 
-- `ecommerce-domain`: entidades, enums e regras de negócio.
-- `ecommerce-application`: casos de uso, commands, responses, mappers e interfaces.
-- `ecommerce-infrastructure`: persistência com JPA, repositories, Flyway e segurança.
-- `ecommerce-api`: controllers, requests, tratamento de erros, Swagger e configuração HTTP/security.
+```text
+ecommerce-domain          regras de negócio, entidades e enums
+ecommerce-application     casos de uso, commands, responses, mappers e contratos
+ecommerce-infrastructure  JPA, repositories, PostgreSQL, Flyway e segurança
+ecommerce-api             controllers, requests, Swagger, filtros e tratamento de erros
+```
 
-Essa estrutura ajuda a manter as regras de negócio separadas de detalhes técnicos como banco, HTTP e autenticação.
+Direção principal das dependências:
+
+```text
+ecommerce-api -> ecommerce-application -> ecommerce-domain
+ecommerce-api -> ecommerce-infrastructure -> ecommerce-application/domain
+```
+
+Essa organização mantém regras de negócio longe de detalhes de HTTP, banco e segurança.
 
 ## Funcionalidades
 
-- CRUD de produtos.
-- Delete lógico de produtos.
-- Criação de pedidos.
-- Baixa automática de estoque ao criar pedido.
+- Cadastro, login e autenticação com JWT.
+- Autorização por perfil `ADMIN` e `CUSTOMER`.
+- CRUD de produtos com delete lógico.
+- Criação de pedidos com baixa automática de estoque.
 - Listagem de pedidos com paginação e filtros.
 - Busca de pedido por ID.
-- Cadastro de usuários.
-- Login com JWT.
-- Proteção de rotas autenticadas.
-- Autorização por perfil `ADMIN` e `CUSTOMER`.
-- Rate limit por origem da requisição.
+- Pagamento simulado de pedido.
+- Idempotência no processamento de pagamento.
 - Tratamento padronizado de erros.
-- Documentação com Swagger/OpenAPI.
-- Pipeline de CI com GitHub Actions.
+- Rate limit por origem da requisição.
+- Health check com Spring Boot Actuator.
 
-## Segurança
+## Fluxo De Pedido E Pagamento
 
-A API utiliza autenticação JWT. Para acessar rotas protegidas, envie o token no header:
+Ao criar um pedido, a API valida produtos ativos, verifica estoque, calcula o total no backend e reduz o estoque dentro da transação.
+
+```text
+PENDING_PAYMENT -> PAID
+```
+
+O pagamento é simulado, mas segue regras importantes de sistemas reais:
+
+- O cliente não informa o valor do pagamento.
+- O valor pago vem de `order.totalAmount`.
+- Pagamento aprovado muda o pedido para `PAID`.
+- Pagamento recusado fica registrado como `REJECTED`.
+- Pagamento recusado mantém o pedido em `PENDING_PAYMENT`.
+- A mesma `Idempotency-Key` para o mesmo pedido retorna o pagamento já processado.
+- Cliente só pode pagar os próprios pedidos.
+
+Endpoint:
 
 ```http
+POST /api/orders/{orderId}/payments
 Authorization: Bearer <token>
+Idempotency-Key: <chave-unica>
 ```
+
+Body:
+
+```json
+{
+  "method": "PIX",
+  "approved": true
+}
+```
+
+Métodos aceitos:
+
+```text
+PIX
+CREDIT_CARD
+```
+
+## Segurança
 
 Rotas públicas:
 
@@ -70,12 +126,16 @@ GET  /api/products
 GET  /api/products/{id}
 GET  /docs
 GET  /v3/api-docs
+GET  /actuator/health
 ```
 
 Rotas protegidas:
 
 ```text
-/api/orders/**
+GET    /api/orders
+GET    /api/orders/{id}
+POST   /api/orders
+POST   /api/orders/{orderId}/payments
 POST   /api/products
 PUT    /api/products/{id}
 DELETE /api/products/{id}
@@ -83,29 +143,10 @@ DELETE /api/products/{id}
 
 Regras principais:
 
-- `CUSTOMER` pode criar pedidos e consultar apenas os próprios pedidos.
-- `ADMIN` pode gerenciar produtos.
-- Requisições sem token retornam `401 Unauthorized`.
-- Requisições sem permissão retornam `403 Forbidden`.
-
-## Rate Limit
-
-A API possui rate limit em memória por origem da requisição. Por padrão, cada origem pode fazer 60 requisições por minuto.
-
-Quando o limite é excedido, a API retorna:
-
-```http
-429 Too Many Requests
-```
-
-As rotas de documentação e health check são ignoradas pelo rate limit:
-
-```text
-/docs
-/swagger-ui/**
-/v3/api-docs/**
-/actuator/health/**
-```
+- `CUSTOMER` cria pedidos, paga pedidos e consulta apenas os próprios pedidos.
+- `ADMIN` gerencia produtos.
+- Token ausente ou inválido retorna `401 Unauthorized`.
+- Falta de permissão retorna `403 Forbidden`.
 
 ## Tratamento De Erros
 
@@ -126,14 +167,14 @@ Erros tratados:
 - validação de request
 - recurso não encontrado
 - regra de negócio
+- falta de permissão
 - token ausente ou inválido
-- acesso negado
 - excesso de requisições
 - erro inesperado
 
 ## Como Rodar
 
-Crie um arquivo `.env` na raiz do projeto com as variáveis:
+Crie um arquivo `.env` na raiz do projeto:
 
 ```env
 POSTGRES_DB=ecommerce
@@ -161,53 +202,6 @@ A API ficará disponível em:
 http://localhost:8080
 ```
 
-Comandos úteis:
-
-```bash
-make db-up
-make db-down
-make docker-up
-make docker-down
-make test
-make build
-```
-
-## Rodando Com Docker Compose
-
-Para subir a API e o PostgreSQL juntos em containers:
-
-```bash
-make docker-up
-```
-
-Ou diretamente:
-
-```bash
-docker compose up -d --build
-```
-
-Para parar os containers:
-
-```bash
-make docker-down
-```
-
-Nesse modo, a API é construída pelo `Dockerfile` e usa o serviço `postgres` como host do banco dentro da rede do Docker Compose.
-
-O container da API possui healthcheck apontando para:
-
-```text
-GET /actuator/health/readiness
-```
-
-Para rodar somente o banco em container e a API localmente via Maven:
-
-```bash
-make dev
-```
-
-## Documentação Da API
-
 Swagger UI:
 
 ```text
@@ -220,26 +214,54 @@ OpenAPI JSON:
 http://localhost:8080/v3/api-docs
 ```
 
-Para testar rotas protegidas no Swagger:
+## Documentação Interativa
 
-1. Faça login em `POST /api/auth/login`.
-2. Copie o valor de `accessToken`.
-3. Clique em `Authorize`.
-4. Informe `Bearer <accessToken>`.
+A API expõe uma documentação interativa com Swagger, permitindo autenticar com JWT, testar endpoints protegidos e visualizar exemplos de respostas.
 
-## Health Check
+Visão geral dos endpoints:
 
-A aplicação expõe health check público com Spring Boot Actuator:
+![Swagger overview](docs/images/swagger.png)
+
+Exemplo de resposta de sucesso:
+
+![Success response example](docs/images/success-example.png)
+
+Exemplo de respostas de erro padronizadas:
+
+![Error responses example](docs/images/error-example.png)
+
+Comandos úteis:
+
+```bash
+make db-up
+make db-down
+make docker-up
+make docker-down
+make test
+make build
+```
+
+## Docker
+
+Para subir API e PostgreSQL juntos:
+
+```bash
+make docker-up
+```
+
+Para parar:
+
+```bash
+make docker-down
+```
+
+O container da API possui healthcheck:
 
 ```text
-GET /actuator/health
-GET /actuator/health/liveness
 GET /actuator/health/readiness
 ```
 
-Essas rotas podem ser usadas por Docker, Kubernetes, pipelines ou serviços de monitoramento.
-
-## Como Testar
+## Testes
 
 Rodar todos os testes:
 
@@ -257,12 +279,12 @@ Os testes cobrem:
 
 - regras de domínio
 - casos de uso da aplicação
+- fluxo de pagamento simulado
+- idempotência de pagamento
 - criação e validação de JWT
 - autenticação e autorização na API
-- acesso público ao Swagger
-- acesso público ao health check
-- bloqueio por excesso de requisições
-- permissões por perfil
+- endpoint de pagamento com JWT
+- rate limit
 - adapters de persistência com PostgreSQL real via Testcontainers
 - execução das migrations Flyway nos testes de integração
 
@@ -281,27 +303,23 @@ A cada `push` ou `pull_request` para `main` ou `master`, o pipeline executa:
 ./mvnw verify
 ```
 
-O pipeline configura variáveis de ambiente próprias para CI e sobe um PostgreSQL de teste como serviço, então ele não depende do arquivo `.env` local.
-
-## Estrutura De Pastas
+## Estrutura
 
 ```text
 .
 ├── .github/workflows
-├── Dockerfile
-├── .dockerignore
 ├── ecommerce-api
 ├── ecommerce-application
 ├── ecommerce-domain
 ├── ecommerce-infrastructure
 ├── docker-compose.yml
+├── Dockerfile
 ├── Makefile
 └── pom.xml
 ```
 
 ## Próximos Passos
 
-- Fluxo de pagamento de pedido.
-- Cancelamento de pedido.
-- Avanço de status do pedido: pago, enviado e entregue.
+- Cancelamento de pedido com devolução de estoque.
+- Avanço de status do pedido: em preparação, enviado e entregue.
 - Collection Postman/Insomnia.
