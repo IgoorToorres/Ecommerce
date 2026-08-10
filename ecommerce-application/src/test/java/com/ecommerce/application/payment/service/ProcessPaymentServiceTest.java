@@ -1,5 +1,6 @@
 package com.ecommerce.application.payment.service;
 
+import com.ecommerce.application.exception.ForbiddenException;
 import com.ecommerce.application.exception.ResourceNotFoundException;
 import com.ecommerce.application.order.repository.OrderRepository;
 import com.ecommerce.application.order.response.PageResponse;
@@ -147,7 +148,7 @@ class ProcessPaymentServiceTest {
         );
 
         assertThatThrownBy(() -> service.process(command))
-                .isInstanceOf(DomainException.class)
+                .isInstanceOf(ForbiddenException.class)
                 .hasMessage("Você não tem permissão para pagar este pedido.");
 
         assertThat(paymentRepository.saveWasCalled()).isFalse();

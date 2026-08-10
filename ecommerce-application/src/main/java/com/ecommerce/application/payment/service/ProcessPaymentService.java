@@ -1,5 +1,6 @@
 package com.ecommerce.application.payment.service;
 
+import com.ecommerce.application.exception.ForbiddenException;
 import com.ecommerce.application.exception.ResourceNotFoundException;
 import com.ecommerce.application.order.repository.OrderRepository;
 import com.ecommerce.application.payment.command.ProcessPaymentCommand;
@@ -37,7 +38,7 @@ public class ProcessPaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado."));
 
         if(command.authenticatedUserRole() == UserRole.CUSTOMER && !order.getCustomerId().equals(command.authenticatedUserId())){
-            throw new DomainException("Você não tem permissão para pagar este pedido.");
+            throw new ForbiddenException("Você não tem permissão para pagar este pedido.");
         }
 
         return paymentRepository

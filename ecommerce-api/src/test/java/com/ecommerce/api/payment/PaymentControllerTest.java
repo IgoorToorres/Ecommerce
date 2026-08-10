@@ -4,6 +4,7 @@ import com.ecommerce.api.exception.GlobalExceptionHandler;
 import com.ecommerce.api.ratelimit.RateLimitFilter;
 import com.ecommerce.api.security.JwtAuthenticationFilter;
 import com.ecommerce.api.security.SecurityConfig;
+import com.ecommerce.application.exception.ForbiddenException;
 import com.ecommerce.application.payment.command.ProcessPaymentCommand;
 import com.ecommerce.application.payment.response.PaymentResponse;
 import com.ecommerce.application.payment.service.ProcessPaymentService;
@@ -178,5 +179,36 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/orders/" + orderId + "/payments"));
 
         verifyNoInteractions(processPaymentService);
+    }
+
+    @Test
+    void shouldReturnForbiddenWhenCustomerTriesToPayAnotherCustomerOrder() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser(
+                UUID.randomUUID(),
+                "customer@email.com",
+                UserRole.CUSTOMER
+        );
+
+        when(tokenService.validateToken("customer-token"))
+                .thenReturn(authenticatedUser);
+        when(processPaymentService.process(any(ProcessPaymentCommand.class)))
+                .thenThrow(new ForbiddenException("Você não tem permissão para pagar este pedido."));
+
+        mockMvc.perform(post("/api/orders/{orderId}/payments", orderId)
+                        .header("Authorization", "Bearer customer-token")
+                        .header("Idempotency-Key", "payment-key-1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "method": "PIX",
+                                  "approved": true
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.error").value("Forbidden"))
+                .andExpect(jsonPath("$.message").value("Você não tem permissão para pagar este pedido."))
+                .andExpect(jsonPath("$.path").value("/api/orders/" + orderId + "/payments"));
     }
 }

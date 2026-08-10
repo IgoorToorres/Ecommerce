@@ -1,5 +1,6 @@
 package com.ecommerce.api.exception;
 
+import com.ecommerce.application.exception.ForbiddenException;
 import com.ecommerce.application.exception.ResourceNotFoundException;
 import com.ecommerce.domain.exception.DomainException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,24 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiErrorResponse> handleForbiddenException(
+            ForbiddenException exception,
+            HttpServletRequest request
+    ) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(response);
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleAccessDeniedException(
