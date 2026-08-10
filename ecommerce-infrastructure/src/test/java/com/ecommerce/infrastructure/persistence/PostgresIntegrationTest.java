@@ -42,7 +42,7 @@ public abstract class PostgresIntegrationTest {
 
     @BeforeEach
     void cleanDatabase() {
-        jdbcTemplate.execute("TRUNCATE TABLE order_items, orders, users, products RESTART IDENTITY CASCADE");
+        jdbcTemplate.execute("TRUNCATE TABLE payments, order_items, orders, users, products RESTART IDENTITY CASCADE");
     }
 
     @SpringBootConfiguration

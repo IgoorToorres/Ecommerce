@@ -1,0 +1,14 @@
+package com.ecommerce.infrastructure.persistence.payment;
+
+import com.ecommerce.domain.payment.Payment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public interface PaymentJpaRepository extends JpaRepository<Payment, UUID> {
+    Optional<Payment> findByOrderIdAndIdempotencyKey(
+            UUID orderId,
+            String idempotencyKey
+    );
+}
