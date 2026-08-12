@@ -13,6 +13,7 @@ O projeto simula um backend de loja com cadastro de produtos, criação de pedid
 - Pagamento simulado com aprovação, recusa, idempotência e atualização transacional do pedido.
 - Migrations versionadas com Flyway e validação de schema via Hibernate `ddl-auto=validate`.
 - Testes unitários e de integração com JUnit 5, AssertJ, Mockito e Testcontainers.
+- Observabilidade básica com `X-Request-Id`, MDC e logs estruturados por requisição.
 - Documentação HTTP com Swagger/OpenAPI.
 - Pipeline de CI com GitHub Actions.
 
@@ -71,6 +72,7 @@ Essa organização mantém regras de negócio longe de detalhes de HTTP, banco e
 - Idempotência no processamento de pagamento.
 - Tratamento padronizado de erros.
 - Rate limit por origem da requisição.
+- Request ID e logs estruturados por requisição.
 - Health check com Spring Boot Actuator.
 
 ## Fluxo De Pedido E Pagamento
@@ -171,6 +173,20 @@ Erros tratados:
 - token ausente ou inválido
 - excesso de requisições
 - erro inesperado
+
+## Observabilidade
+
+Cada requisição recebe um identificador de rastreamento no header `X-Request-Id`.
+
+Se o cliente enviar esse header, a API reutiliza o valor. Se não enviar, a API gera um UUID e devolve o identificador na resposta.
+
+Os logs HTTP são emitidos em formato `key=value` com os principais campos da requisição:
+
+```text
+http_request requestId=<id> method=POST path=/api/orders status=201 durationMs=42 userId=<uuid> role=CUSTOMER
+```
+
+O `requestId` também é colocado no MDC, permitindo correlacionar logs internos gerados durante a mesma requisição.
 
 ## Como Rodar
 
@@ -285,6 +301,7 @@ Os testes cobrem:
 - autenticação e autorização na API
 - endpoint de pagamento com JWT
 - rate limit
+- geração e propagação de `X-Request-Id`
 - adapters de persistência com PostgreSQL real via Testcontainers
 - execução das migrations Flyway nos testes de integração
 

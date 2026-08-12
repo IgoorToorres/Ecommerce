@@ -1,6 +1,7 @@
 package com.ecommerce.api.security;
 
 import com.ecommerce.api.exception.ApiErrorResponse;
+import com.ecommerce.api.observability.RequestLoggingFilter;
 import com.ecommerce.api.ratelimit.RateLimitFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -19,10 +20,16 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RequestLoggingFilter requestLoggingFilter;
     private final RateLimitFilter rateLimitFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, RateLimitFilter rateLimitFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            RequestLoggingFilter requestLoggingFilter,
+            RateLimitFilter rateLimitFilter
+    ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.requestLoggingFilter = requestLoggingFilter;
         this.rateLimitFilter = rateLimitFilter;
     }
 
@@ -72,7 +79,8 @@ public class SecurityConfig {
                                 )
                         )
                 )
-                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(requestLoggingFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(rateLimitFilter, RequestLoggingFilter.class)
                 .addFilterAfter(jwtAuthenticationFilter, RateLimitFilter.class)
                 .formLogin(form -> form.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())

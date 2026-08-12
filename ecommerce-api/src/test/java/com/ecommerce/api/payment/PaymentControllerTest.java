@@ -1,6 +1,7 @@
 package com.ecommerce.api.payment;
 
 import com.ecommerce.api.exception.GlobalExceptionHandler;
+import com.ecommerce.api.observability.RequestLoggingFilter;
 import com.ecommerce.api.ratelimit.RateLimitFilter;
 import com.ecommerce.api.security.JwtAuthenticationFilter;
 import com.ecommerce.api.security.SecurityConfig;
@@ -46,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         PaymentController.class,
         SecurityConfig.class,
         JwtAuthenticationFilter.class,
+        RequestLoggingFilter.class,
         RateLimitFilter.class,
         GlobalExceptionHandler.class
 })

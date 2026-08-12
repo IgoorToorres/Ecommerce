@@ -2,6 +2,7 @@ package com.ecommerce.api.security;
 
 import com.ecommerce.api.auth.AuthController;
 import com.ecommerce.api.exception.GlobalExceptionHandler;
+import com.ecommerce.api.observability.RequestLoggingFilter;
 import com.ecommerce.api.order.OrderController;
 import com.ecommerce.api.product.ProductController;
 import com.ecommerce.api.ratelimit.RateLimitFilter;
@@ -61,6 +62,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ProductController.class,
         SecurityConfig.class,
         JwtAuthenticationFilter.class,
+        RequestLoggingFilter.class,
         RateLimitFilter.class,
         GlobalExceptionHandler.class
 })
